@@ -1,0 +1,447 @@
+# 品質計畫完整作業規則
+
+## 一、字型分析規則（每次新工程必執行）
+
+品質計畫的封面、目錄、標題、內文及附件的字體/字型/大小，
+**必須與當次上傳監造計畫的對應格式完全一致**。
+
+### PDF 監造計畫字型分析程式碼
+```python
+import pypdf, io
+from fontTools.ttLib import TTFont
+reader = pypdf.PdfReader("監造計畫.pdf")
+fonts = reader.pages[0]['/Resources']['/Font']
+for key, val in fonts.items():
+    font_obj = val.get_object()
+    if '/DescendantFonts' not in font_obj: continue
+    desc = font_obj['/DescendantFonts'][0].get_object()
+    fd = desc.get('/FontDescriptor', {}).get_object()
+    if fd and '/FontFile2' in fd:
+        data = fd['/FontFile2'].get_object().get_data()
+        tt = TTFont(file=io.BytesIO(data))
+        name = tt['name']
+        print(f"{key}: {name.getDebugName(1)}")
+```
+
+### DOCX 監造計畫字型分析程式碼
+```python
+from docx import Document
+doc = Document("監造計畫.docx")
+style = doc.styles['Normal']
+print(f"內文：{style.font.name}, {style.font.size}")
+for s in doc.styles:
+    if s.type.name == 'PARAGRAPH' and s.font.size:
+        print(f"{s.name}: {s.font.name}, {s.font.size.pt}pt")
+```
+
+### 腳本設定區常數（全部填入，不得硬編碼）
+
+```python
+# ═══════════════════════════════════════════════════
+# ⭐ 工程設定區（每次新工程必須更新以下所有欄位）
+# ═══════════════════════════════════════════════════
+
+# ── 工程基本資訊 ──
+ENG_NAME    = "【工程全名】"
+ENG_OWNER   = "【主辦機關】"
+ENG_DESIGN  = "【設計單位（含技師姓名）】"
+ENG_SUPER   = "【監造單位（含技師姓名）】"
+ENG_CONTR   = "【承攬廠商】"
+ENG_SITE    = "【工程地點】"
+ENG_DAYS    = "【契約工期】日曆天"
+ENG_AMOUNT  = "新臺幣【金額】元"
+ENG_FOREMAN = "【工地主任姓名】"
+ENG_QA      = "【品管人員姓名】（結業證書字號：【字號】）"
+ENG_TECH    = "【主任技師姓名】（技師證號：【證號】）"
+
+# ── DOCX 字型設定（依當次監造計畫分析填入）──
+DOCX_FONT_CJK   = '標楷體'   # 中文字型（例：'標楷體'/'新細明體'）
+DOCX_FONT_LATIN = 'Arial'    # 英數字型（例：'Arial'/'Times New Roman'）
+
+# ── DOCX 字型大小（依當次監造計畫各層級大小填入，pt 整數）──
+DOCX_SZ_BODY        = 12   # 內文
+DOCX_SZ_H1          = 22   # 章次標題（Heading 1）
+DOCX_SZ_H2          = 14   # 節次標題（Heading 2）
+DOCX_SZ_H3          = 12   # 子節標題（Heading 3）
+DOCX_SZ_TOC         = 14   # 目錄項目
+DOCX_SZ_TABLE       = 12   # 表格文字（含標題列）
+DOCX_SZ_COVER_MAIN  = 36   # 封面主標題（整體品質計畫）
+DOCX_SZ_COVER_PROJ  = 24   # 封面工程名稱
+DOCX_SZ_COVER_INFO  = 16   # 封面資訊欄（主辦機關/監造單位等）
+DOCX_SZ_NOTE        = 9    # 備注/頁首/頁尾
+
+# ── 輸出路徑（動態計算絕對路徑，禁止使用相對路徑）──
+# 腳本儲存於 mnt/QualityPlanMaker/03_產出品質計畫/<script>.py
+# os.path.abspath(__file__) 取得腳本絕對路徑，dirname×2 回推至 mnt/QualityPlanMaker/
+_WORKSPACE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_PATH = os.path.join(_WORKSPACE, "03_產出品質計畫", f"{ENG_NAME}-整體品質計畫.docx")
+```
+
+---
+
+## 二、章節制判斷規則
+
+### 契約金額分級（依公共工程施工品質管理標準作業要點）
+
+| 契約金額（元） | 必選章節（法定最低要求） | 章節制 | CHAPTER_MODE |
+|--------------|----------------------|--------|-------------|
+| 1,500,000 元以上，未達 10,000,000 元（150萬～未達1,000萬） | **管理責任及權責分工、品質管理標準、材料及施工檢驗程序、自主檢查表**（4章，不得省略） | 4章制 | `general4` |
+| 10,000,000 元以上，未達 50,000,000 元（1,000萬～未達5,000萬） | 計畫範圍、管理責任及權責分工、品質管理標準、材料及施工檢驗程序、自主檢查表、文件紀錄管理系統（6章） | 6章制 | `general6` |
+| 50,000,000 元以上（5,000萬以上） | 全11項（含施工要領、不合格品管制、矯正預防、內部稽核） | 11章制 | `general11` |
+| 金質獎景觀工程（有機電） | 整合9章（壹～玖） | 景觀9章制 | `landscape9` |
+| 金質獎景觀工程（無機電） | 整合8章（壹～捌） | 景觀8章制 | `landscape8` |
+| 道路/排水/箱涵 | 全11章（第一～第十一章） | 道路11章制 | `road11` |
+
+> ⚠️ **1,500,000 元以上，未達 10,000,000 元（150萬～未達1,000萬）特別注意**：管理責任及權責分工、品質管理標準、材料及施工檢驗程序、自主檢查表為法定**必選4章**，缺一不可，不得以任何理由省略或合併。
+>
+> 工程具運轉類機電設備（1,500,000 元以上）均須另行增訂「設備功能運轉測試」章。
+
+### 景觀工程章節制判斷
+
+```
+有噴灌/照明監控/排水設備等 → 景觀9章制（壹～玖）
+純景觀/植栽/鋪面/座椅     → 景觀8章制（壹～捌）
+```
+
+---
+
+## 三、章節選擇步驟（Step 4，每次產出前強制執行）
+
+> ⚠️ **此步驟為強制關卡。分析監造計畫（Step 2）並顯示工程概要確認（Step 3）後，必須立即執行本步驟，不得跳過，未完成不得進入腳本撰寫/修改（Step 5）及後續流程。**
+
+### 執行方式
+
+1. 讀取 `references/07_chapter_selection.md`（詳細格式與範本均在其中）
+2. 依契約金額判定級距（1,500,000～10,000,000元 → 4章基礎；10,000,000～50,000,000元 → 6章基礎；50,000,000元以上 → 10/11章）
+3. 呼叫 **AskUserQuestion** 工具，以選擇題方式讓主任技師確認章節配置（必選章節標 🔒、選配標 💡/➕）
+4. 等待主任技師選擇後，依回應更新 Python 腳本的 `CHAPTER_FLAGS` 區塊
+5. 確認 `CHAPTER_FLAGS` 已更新後，方可繼續 Step 5
+
+### 注意事項
+
+- 必選章節（依法規金額級距鎖定）**不得排除**；若使用者要求排除，應說明法規限制，建議改為「精簡內容」
+- 景觀工程（8/9章制）章序以「壹～捌/玖」表示，道路與一般工程以「第一～第十一章」表示
+- 章節確認後，腳本須動態重新計算章序（壹、貳、參…不跳號）及目錄頁碼
+
+---
+
+## 四、通用製作原則
+
+### 主詞轉換規則
+| 監造計畫主詞 | 品質計畫主詞 |
+|-----------|-----------|
+| 監造單位 | 本公司（承攬廠商） |
+| 本公司審查 | 提送監造單位審查 |
+| 通知廠商改善 | 自行辦理改善 |
+| 監造人員簽認 | 工地主任/現場施工人員簽認 |
+
+### 表格標題轉換規則
+| 監造計畫表格標題 | 品質計畫表格標題 |
+|--------------|--------------|
+| 施工抽查標準表 | 品質管理標準表 |
+| 施工抽查紀錄表 | 施工自主檢查表 |
+| 異常通知暨追蹤改善表 | 不合格品改正紀錄表 |
+| 材料設備抽驗流程 | 材料設備檢驗流程 |
+
+### 停留點標記規則
+
+| 工程類型 | 符號 | 意義 |
+|---------|-----|------|
+| 景觀（金質獎） | ＊ | 監造停留點 |
+| 景觀（金質獎） | ※ | 自主檢查停留點 |
+| 道路（金質獎） | ☆ | 自主檢查停留點 |
+| 道路（金質獎） | ◎ | 安衛查驗點 |
+| 一般版 | ▽ | 檢驗停留點 |
+
+---
+
+## 五、封面格式
+
+```
+（上方 Logo 區域）
+
+        整體品質計畫
+
+    【工程全名】
+
+主辦機關：【主辦機關】
+監造單位：【監造單位】
+承攬廠商：【承攬廠商名稱】
+中華民國　　年　　月
+```
+
+字型大小：「整體品質計畫」用 `DOCX_SZ_COVER_MAIN`、工程名用 `DOCX_SZ_COVER_PROJ`、資訊欄用 `DOCX_SZ_COVER_INFO`。
+
+---
+
+## 五之一、頁尾格式規定（三段式分節）
+
+文件依頁尾格式分為三個 Section：
+
+| 區域 | 頁尾格式 |
+|------|---------|
+| 封面 | **無頁尾**（不顯示任何頁碼或文字） |
+| 目錄 | 羅馬數字小寫頁碼，水平置中：i、ii、iii、iv… |
+| 內文（第壹/一章起） | 阿拉伯數字頁碼，水平置中：1、2、3、4… |
+
+### 實作要點
+
+- 封面 Section：`footer.is_linked_to_previous = False`，**不加任何頁碼 field**
+- 目錄 Section：`footer.is_linked_to_previous = False`，插入 PAGE field，`sectPr` 加入 `<w:pgNumType w:fmt="lowerRoman" w:start="1"/>`
+- 內文 Section（預設最後一節）：`footer.is_linked_to_previous = False`，插入 PAGE field，加入 `<w:pgNumType w:fmt="decimal" w:start="1"/>`
+- 節區分隔符號：在封面最後一段及目錄最後一段各呼叫 `insert_section_break(doc)`
+- 詳細程式碼見 `06_docx_tech.md` §七（頁尾與節區實作）
+
+---
+
+## 六、目錄格式
+
+- 目錄呈現**標題 1（章）**與**標題 2（節）**所在頁數
+- 頁碼為阿拉伯數字，**靠右對齊**（使用 tab 定位點連至右邊界）
+- 字型大小用 `DOCX_SZ_TOC`；章標題可加粗，節標題一般粗細
+- 格式範例：
+
+```
+壹、計畫範圍 ················· 1
+  一、工程概述 ··············· 1
+  二、品管組織 ··············· 3
+貳、管理權責 ················· 5
+```
+
+---
+
+## 六之一、顏色規定（全文強制）
+
+| 元素 | 規定 |
+|-----|------|
+| 所有文字（封面、目錄、標題、內文、附件） | **黑色**（RGB 0, 0, 0） |
+| 表格框線 | **黑色** |
+| 表格標題列背景 | 淺灰 `#F2F2F2`；**禁止**藍色或其他彩色背景 |
+| 表格資料列背景 | 無填色（白色 `#FFFFFF`）；**禁止**條紋彩色 |
+| 圖形/流程圖形狀底色 | **無填色**（白色或 None），外框線為黑色 |
+| PIL 流程圖文字與框線 | 黑色（`fill=(0,0,0)`、`outline=(0,0,0)`） |
+
+> ⚠️ `HEADING_COLORS` 必須設為 `(0, 0, 0)`（黑色），**禁止**使用藍色 `(26, 82, 118)` 或其他彩色。
+
+---
+
+## 六之二、圖表編號規定
+
+### 表格標題格式
+
+- 表格本身：`WD_TABLE_ALIGNMENT.CENTER`（水平置中）
+- **表名位於表格上方**，以水平置中段落呈現
+- 格式：`表{章號}-{章內序號} 表名`
+  - 章號以**阿拉伯數字**（壹=1、貳=2、参=3…；第一章=1、第二章=2…）
+  - 例：`表1-1 品質管理人員組織表`（第壹章/第一章 第 1 個表）
+  - 例：`表2-3 施工自主檢查項目表`（第貳章/第二章 第 3 個表）
+- 先呼叫標題函式，再建表格：
+  ```python
+  add_table_caption(doc, chapter=1, seq=1, name="工程主要施工項目及數量表")
+  make_table(doc, headers, rows, col_widths)
+  ```
+
+### 圖形標題格式
+
+- 圖形段落：對齊設為置中（`WD_ALIGN_PARAGRAPH.CENTER`）
+- **圖名位於圖形下方**，以水平置中段落呈現
+- 格式：`圖{章號}-{章內序號} 圖名`
+  - 例：`圖1-1 組織架構圖`（第壹章/第一章 第 1 個圖）
+  - 例：`圖3-2 施工作業流程圖`（第参章/第三章 第 2 個圖）
+- 先插圖再呼叫標題函式：
+  ```python
+  add_img(doc, img_bytes, width_cm=14)
+  add_figure_caption(doc, chapter=2, seq=1, name="品管組織架構圖")
+  ```
+
+> 詳細程式碼見 `06_docx_tech.md` §八（表名與圖名輔助函式）
+
+---
+
+## 七、自主檢查表固定底部格式（每張必有）
+
+```
+缺失複查結果：
+□已完成改善
+□未完成改善，填至「不合格管制總表」第○項進行追蹤改善
+
+複查日期：　年　月　日　　複查人員職稱：　　　　　簽名：
+
+備註：
+1. 檢查標準應具體明確或量化尺寸。
+2. 檢查結果合格「○」，不合格「╳」，不需檢查「／」。
+3. 嚴重缺失未及時完成改善，應填具「不合格品管制總表」追蹤改善。
+4. 本表由工地現場施工人員實地檢查後覈實記載簽認。
+
+工地主任（工地負責人）簽名：＿＿＿＿　　現場施工人員（檢查人員）簽名：＿＿＿＿
+```
+
+> ⚠️ 品管人員**不得**列入自主檢查表的簽名欄位。
+
+---
+
+## 八、品質管理標準表固定欄位（每張必有）
+
+| 施工流程 | 管理項目 | 檢查標準 | 檢查時機 | 檢查方法 | 檢查頻率 | 管理紀錄 | 不符合標準之處置方法 |
+|---------|---------|---------|---------|---------|---------|---------|-----------------|
+
+管理標準必須量化：
+- 混凝土坍度：15±4 cm
+- 混凝土溫度：13°C～32°C
+- 氯離子含量：≦0.15 kg/m³
+- 澆置間隔：≦45 min
+- 壓實度：≧95%
+
+---
+
+## 九、腳本複用模式操作流程
+
+1. 讀取已有的 `quality_plan_[類型].py`
+2. 找到「工程設定區」，逐項替換：
+   - ENG_NAME、ENG_OWNER、ENG_SUPER、ENG_CONTR…
+   - DOCX_FONT_CJK、DOCX_FONT_LATIN
+   - DOCX_SZ_* 各常數（依本次監造計畫分析結果）
+3. 若工項數量不同，更新品質管理標準表與自主檢查表的工項清單
+4. 執行腳本
+5. 確認 DOCX 正常開啟（無修復錯誤）
+
+---
+
+## 十、全新製作模式操作流程
+
+1. 讀取對應工程類型的 reference 檔（`02_landscape.md` 或 `03_road.md`）
+2. 依工程類型建立 Python 腳本（參考 `scripts/quality_plan_template.py`）
+3. 設定區全部使用常數，不寫死任何數值
+4. 逐章撰寫內容，直接寫入腳本，禁止在 chat 展示完整章節文字
+5. 執行腳本並修正 python-docx 已知 bug（見 `06_docx_tech.md`）
+6. 存檔為 `quality_plan_[類型].py` 供下次複用
+
+
+---
+
+## 十一、工程主要施工項目及數量表（完整複製規則）
+
+> ⚠️ **此表必須 100% 完整複製監造計畫原始表格，禁止任何形式的截斷、刪減、合併或新增。**
+> 此規則為強制性，無例外；表格再長（幾十列）也必須全數寫入。
+
+---
+
+### PDF 監造計畫提取（優先使用 pdfplumber）
+
+```python
+import pdfplumber
+
+def extract_construction_items_pdf(pdf_path):
+    """
+    從 PDF 監造計畫完整提取工程主要施工項目及數量表（跨頁合併）。
+    傳回 list of tuples，每個 tuple 對應一列資料。
+    ⚠️ 必須提取所有列，禁止截斷。
+    """
+    all_rows = []
+    in_target_table = False
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            tables = page.extract_tables()
+            for table in tables:
+                if not table:
+                    continue
+                for i, row in enumerate(table):
+                    if row is None:
+                        continue
+                    cells = [str(c).strip() if c else '' for c in row]
+                    # 識別標題列（含「項次」或「項目及說明」）
+                    if any('項次' in c or '項目及說明' in c for c in cells):
+                        in_target_table = True
+                        continue  # 略過標題列，從下一列起為資料
+                    if in_target_table:
+                        # 略過完全空白列
+                        if any(c for c in cells):
+                            all_rows.append(tuple(cells))
+
+    print(f"✅ 已提取 {len(all_rows)} 列，請與監造計畫原始頁面對照確認列數是否一致")
+    return all_rows
+```
+
+> **跨頁注意**：若監造計畫表格跨越多頁，pdfplumber 會分頁輸出，上述函式已自動合併。
+> 提取後請列印 `len(all_rows)` 並對照監造計畫紙本或 PDF 確認列數完全一致。
+
+---
+
+### DOCX 監造計畫提取
+
+```python
+from docx import Document
+
+def extract_construction_items_docx(docx_path):
+    """
+    從 DOCX 監造計畫完整提取工程主要施工項目及數量表。
+    ⚠️ 必須提取所有列，禁止截斷。
+    """
+    doc = Document(docx_path)
+    rows = []
+    for table in doc.tables:
+        header_found = False
+        temp_rows = []
+        for row in table.rows:
+            cells = [cell.text.strip() for cell in row.cells]
+            if not header_found:
+                if any('項次' in c or '項目及說明' in c for c in cells):
+                    header_found = True
+                    continue
+            else:
+                if any(c for c in cells):
+                    temp_rows.append(tuple(cells))
+        if header_found and temp_rows:
+            rows = temp_rows
+            break  # 找到第一個符合的表格即停止
+
+    print(f"✅ 已提取 {len(rows)} 列，請與監造計畫原始頁面對照確認列數是否一致")
+    return rows
+```
+
+---
+
+### 寫入腳本的標準格式
+
+提取後，在 Python 腳本中用以下格式寫入（**每一列都必須明確列出**）：
+
+```python
+# ── 表1-1 工程主要施工項目及數量表 ──
+# ⚠️ 以下資料從監造計畫 100% 完整複製，禁止增刪任何列
+# ⚠️ 提取後須確認列數與監造計畫原始表格一致
+CONSTRUCTION_ITEMS = [
+    # (項次, 項目及說明, 單位, 數量)
+    ('壹', '整地拆除工程', '', ''),
+    ('壹-1', '清除及掘除', 'M2', '15,148.00'),
+    ('壹-2', '地樣打除（未含運費）', 'M2', '11,545.00'),
+    ('壹-3', '機械拆除、鋼筋混凝土（未含運費）', 'M3', '951.00'),
+    ('壹-16', '廢棄物處理、營建廢棄物清除', 'M3', '3,260.00'),
+    # ↓ 繼續列出監造計畫所有剩餘列（禁止省略）↓
+    # ...（此處為示範，實際執行時必須逐列填入）
+]
+
+# ── 欄寬設定（依監造計畫欄位數調整）──
+# 4 欄版（項次/項目及說明/單位/數量）
+ITEM_HEADERS    = ['項次', '項目及說明', '單位', '數量']
+ITEM_COL_WIDTHS = [2.0, 10.5, 2.0, 2.5]  # cm，總寬 ≈ 17 cm（A4 版心）
+
+add_table_caption(doc, chapter=1, seq=1, name="工程主要施工項目及數量表")
+make_table(doc,
+    headers=ITEM_HEADERS,
+    rows=CONSTRUCTION_ITEMS,
+    col_widths=ITEM_COL_WIDTHS,
+    header_bg='F2F2F2',
+    header_fg=(0, 0, 0),
+    stripe=False,
+)
+```
+
+---
+
+### ⚠️ 強制檢查清單（每次必執行）
+
+1. `len(CONSTRUCTION_ITEMS)` 是否與監造計畫原始表格列數完全一致？
+2. 是否有任何列使用了 `# TODO`、`# ...`、「以此類推」等省略字樣？→ 若有，立即補齊
+3. 各欄數值（單位、數量）是否與監造計畫原文一致？→ 禁止四捨五入或格式轉換
+4. 若監造計畫表格有合併儲存格（如大項/小項結構），合併儲存格的文字應完整保留於「項目及說明」欄

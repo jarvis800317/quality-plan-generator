@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品質計畫 — 章節選擇器</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+  .container { max-width: 700px; margin: 0 auto; }
+
+  h1 { text-align: center; font-size: 1.5rem; color: #1a1a2e; margin-bottom: 20px; }
+  h1 span { font-size: 1.2rem; margin-right: 8px; }
+
+  .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  label { display: block; font-weight: 600; margin-bottom: 6px; color: #444; }
+  input[type="number"] { width: 100%; padding: 10px 12px; font-size: 1rem; border: 2px solid #ddd; border-radius: 8px; outline: none; transition: border-color 0.2s; }
+  input[type="number"]:focus { border-color: #2563eb; }
+
+  .level-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin: 12px 0; }
+  .level-info { font-size: 0.85rem; color: #666; margin-top: 4px; }
+
+  .section-title { font-size: 0.9rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 10px; }
+
+  .chapter-list { display: flex; flex-direction: column; gap: 8px; }
+  .chapter-item { display: flex; align-items: center; padding: 10px 12px; border-radius: 8px; border: 1.5px solid #e5e7eb; transition: all 0.15s; cursor: pointer; }
+  .chapter-item:hover { border-color: #93c5fd; background: #f8fafc; }
+  .chapter-item.selected { border-color: #2563eb; background: #eff6ff; }
+  .chapter-item.locked { border-color: #fbbf24; background: #fffbeb; cursor: default; }
+
+  .chapter-item input { margin-right: 10px; width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer; }
+  .chapter-item.locked input { accent-color: #d97706; cursor: not-allowed; }
+
+  .chapter-num { font-weight: 800; min-width: 36px; color: #1e40af; font-size: 0.95rem; }
+  .chapter-item.locked .chapter-num { color: #92400e; }
+  .chapter-name { flex: 1; font-size: 0.95rem; }
+  .chapter-note { font-size: 0.8rem; color: #888; margin-left: 8px; }
+  .lock-icon { margin-left: 6px; }
+
+  .summary { background: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 0.85rem; color: #555; }
+  .summary strong { color: #1e40af; }
+
+  .copy-btn { width: 100%; padding: 14px; font-size: 1rem; font-weight: 700; color: #fff; background: #2563eb; border: none; border-radius: 10px; cursor: pointer; margin-top: 16px; transition: background 0.2s; }
+  .copy-btn:hover { background: #1d4ed8; }
+  .copy-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #065f46; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><span>📋</span>品質計畫 — 章節選擇器</h1>
+
+  <div class="card">
+    <label for="amount">契約金額（元）</label>
+    <input type="number" id="amount" placeholder="例如：107947000" value="107947000">
+    <div id="levelBadge" class="level-badge" style="background:#dbeafe; color:#1e40af;">5,000 萬以上 — 11 章制</div>
+    <div id="levelInfo" class="level-info">法定必選 10 章（設備功能運轉測試為選配）</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">選擇要納入的章節（🔒 = 法規必選）</div>
+    <div class="chapter-list" id="chapterList"></div>
+    <div class="summary" id="summary">共 <strong>0</strong> 章</div>
+  </div>
+
+  <button class="copy-btn" id="copyBtn" onclick="copyConfig()">📋 複製章節配置</button>
+</div>
+
+<div class="toast" id="toast">已複製！請貼到對話框</div>
+
+<script>
+const CHAPTERS = [
+  { key: "scope",      zhNum: "壹",   title: "計畫範圍",              note: "" },
+  { key: "mgmt",       zhNum: "貳",   title: "管理責任及權責分工",    note: "" },
+  { key: "method",     zhNum: "參",   title: "施工要領",              note: "" },
+  { key: "standard",   zhNum: "肆",   title: "品質管理標準",           note: "" },
+  { key: "inspection", zhNum: "伍",   title: "材料及施工檢驗程序",    note: "" },
+  { key: "equipment",  zhNum: "陸",   title: "設備功能運轉測試",      note: "有機電設備時建議保留" },
+  { key: "selfcheck",  zhNum: "柒",   title: "自主檢查表",            note: "" },
+  { key: "nc",         zhNum: "捌",   title: "不合格品之管制",        note: "" },
+  { key: "ca",         zhNum: "玖",   title: "矫正與預防措施",        note: "" },
+  { key: "audit",      zhNum: "拾",   title: "內部品質稽核",           note: "" },
+  { key: "doc",        zhNum: "拾壹", title: "文件紀錄管理系統",       note: "" },
+];
+
+function getMandatoryKeys(amount) {
+  if (amount >= 50000000) return ["scope","mgmt","method","standard","inspection","selfcheck","nc","ca","audit","doc"];
+  if (amount >= 10000000) return ["scope","mgmt","standard","inspection","selfcheck","doc"];
+  if (amount >= 1500000)  return ["mgmt","standard","inspection","selfcheck"];
+  return [];
+}
+
+function getLevelInfo(amount) {
+  if (amount >= 50000000) return { label: "5,000 萬以上 — 11 章制",     color: "#dbeafe", text: "#1e40af", info: "法定必選 10 章（設備功能運轉測試為選配）", mandatoryCount: 10 };
+  if (amount >= 10000000) return { label: "1,000 萬～未達 5,000 萬 — 6 章制", color: "#dcfce7", text: "#166534", info: "法定必選 6 章", mandatoryCount: 6 };
+  if (amount >= 1500000)  return { label: "150 萬～未達 1,000 萬 — 4 章制", color: "#fef3c7", text: "#92400e", info: "法定必選 4 章（不得省略）", mandatoryCount: 4 };
+  return { label: "未達 150 萬 — 無強制要求", color: "#f3f4f6", text: "#6b7280", info: "建議至少 4 章", mandatoryCount: 0 };
+}
+
+function formatAmount(val) {
+  if (!val) return "—";
+  return Number(val).toLocaleString('zh-TW') + ' 元';
+}
+
+let selected = new Set();
+
+function render() {
+  const amount = parseInt(document.getElementById('amount').value) || 0;
+  const mandatory = new Set(getMandatoryKeys(amount));
+  const level = getLevelInfo(amount);
+
+  const badge = document.getElementById('levelBadge');
+  badge.textContent = level.label;
+  badge.style.background = level.color;
+  badge.style.color = level.text;
+
+  document.getElementById('levelInfo').textContent = level.info + '（已偵測金額：' + formatAmount(amount) + '）';
+
+  // Ensure selected always includes all mandatory
+  mandatory.forEach(k => selected.add(k));
+
+  const list = document.getElementById('chapterList');
+  list.innerHTML = '';
+
+  CHAPTERS.forEach(ch => {
+    const isLocked = mandatory.has(ch.key);
+    const isChecked = selected.has(ch.key);
+
+    const div = document.createElement('div');
+    div.className = 'chapter-item' + (isLocked ? ' locked' : '') + (isChecked && !isLocked ? ' selected' : '');
+    div.innerHTML = `
+      <input type="checkbox" id="ch_${ch.key}" ${isChecked ? 'checked' : ''} ${isLocked ? 'readonly onclick="return false"' : ''} onchange="toggle('${ch.key}', this.checked)">
+      <span class="chapter-num">${ch.zhNum}</span>
+      <span class="chapter-name">${ch.title}</span>
+      ${ch.note ? `<span class="chapter-note">${ch.note}</span>` : ''}
+      ${isLocked ? '<span class="lock-icon">🔒</span>' : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  const count = selected.size;
+  const mandatoryCount = mandatory.size;
+  document.getElementById('summary').innerHTML = `共 <strong>${count}</strong> 章（🔒 法規必選 ${mandatoryCount} 章）`;
+
+  document.getElementById('copyBtn').disabled = count === 0;
+}
+
+function toggle(key, checked) {
+  if (checked) selected.add(key);
+  else selected.delete(key);
+  render();
+}
+
+function copyConfig() {
+  const amount = parseInt(document.getElementById('amount').value) || 0;
+  const mandatory = new Set(getMandatoryKeys(amount));
+  const level = getLevelInfo(amount);
+  const selectedList = CHAPTERS.filter(ch => selected.has(ch.key));
+
+  const lines = ['【章節配置確認 — 請將以下文字貼至 AI 對話框】',
+    `契約金額：${formatAmount(amount)}（${level.label}，法規必選 ${mandatory.size} 章）`,
+    `納入章節（共 ${selected.size} 章）：${selectedList.map(ch => {
+      const locked = mandatory.has(ch.key) ? '🔒' : '';
+      return `${ch.zhNum} ${ch.title}${locked ? ' 🔒' : ''}`;
+    }).join('、')}`,
+    '',
+    'CHAPTER_FLAGS=',
+  ];
+
+  const flags = {};
+  CHAPTERS.forEach(ch => { flags[ch.key] = selected.has(ch.key); });
+  lines.push(JSON.stringify(flags, null, 2));
+
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  });
+}
+
+document.getElementById('amount').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
