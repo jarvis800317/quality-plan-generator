@@ -73,7 +73,7 @@ export default function App() {
 
   const amountNum = parseFloat(amount) || 0;
   const chapterStates = getChapterStates(amountNum);
-  const activeChapters = getSelectedChapters(amountNum, hasEquipment, checkedIds);
+  const activeChapters = getSelectedChapters(amountNum, checkedIds);
 
   return (
     <div className="app-root">

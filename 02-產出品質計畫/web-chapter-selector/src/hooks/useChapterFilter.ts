@@ -15,14 +15,7 @@ export interface ProjectConfig {
  */
 export function getSelectedChapters(
   amount: number,
-  hasEquipment: boolean,
   checkedIds: Set<string>
 ): Chapter[] {
-  return CHAPTERS.filter((ch) => {
-    if (ch.id === 'ch6') {
-      // 陸（設備功能運轉檢測程序及標準）：須同時滿足 hasEquipment + amount>=150
-      return checkedIds.has('ch6') && hasEquipment && amount >= 150;
-    }
-    return checkedIds.has(ch.id);
-  });
+  return CHAPTERS.filter((ch) => checkedIds.has(ch.id));
 }
