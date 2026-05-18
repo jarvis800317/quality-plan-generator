@@ -29,30 +29,35 @@ export default function App() {
   });
 
   // 依金額門檻重新計算必選章（保留使用者對選配章的手動操作）
-  const recompute = useCallback(() => {
-    const amountNum = parseFloat(amount) || 0;
-    const states = getChapterStates(amountNum);
-    setCheckedIds((prev) => {
-      const next = new Set<string>();
-      CHAPTERS.forEach((ch) => {
-        const status = states.get(ch.id);
-        if (status === 'required') {
-          next.add(ch.id); // 必選章自動勾
-        } else if (status === 'optional' && prev.has(ch.id)) {
-          next.add(ch.id); // 選配章保留原本勾選狀態
-        }
-        // hidden 章節完全不加入
+  // 吃 amount 參數避免閉包陷阱；選配章保留原本勾選狀態
+  const recompute = useCallback(
+    (currentAmount: string) => {
+      const amountNum = parseFloat(currentAmount) || 0;
+      const states = getChapterStates(amountNum);
+      setCheckedIds((prev) => {
+        const next = new Set<string>();
+        CHAPTERS.forEach((ch) => {
+          const status = states.get(ch.id);
+          if (status === 'required') {
+            next.add(ch.id); // 必選章自動勾
+          } else if (status === 'optional' && prev.has(ch.id)) {
+            next.add(ch.id); // 選配章保留原本勾選狀態
+          }
+        });
+        return next;
       });
-      return next;
-    });
-  }, [amount]);
+    },
+    []
+  );
 
   function handleFormChange(field: string, value: string | boolean) {
     if (field === 'name') setName(value as string);
-    if (field === 'amount') setAmount(value as string);
+    if (field === 'amount') {
+      setAmount(value as string);
+      recompute(value as string); // 直接帶新金額，立即重新計算必選章
+    }
     if (field === 'category') setCategory(value as ProjectCategory);
     if (field === 'hasEquipment') setHasEquipment(value as boolean);
-    setTimeout(recompute, 0);
   }
 
   // 切換選配章勾選狀態（hasEquipment 的限制僅影響輸出顯示，不阻止勾選）
@@ -105,7 +110,7 @@ export default function App() {
               onChange={handleFormChange}
             />
             <button
-              onClick={recompute}
+              onClick={() => recompute(amount)}
               className="mt-4 w-full py-2 text-sm bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
               重新計算章節
