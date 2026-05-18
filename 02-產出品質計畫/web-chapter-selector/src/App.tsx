@@ -5,11 +5,12 @@ import { OutputPanel } from './components/OutputPanel';
 import { CHAPTERS, getChapterStates } from './data/chapters';
 import { getSelectedChapters } from './hooks/useChapterFilter';
 import type { ProjectCategory } from './hooks/useChapterFilter';
+import appConfig from './config.json';
 import './App.css';
 
-// 預先帶入：從監造計畫讀取的預設值（可由使用者修改）
-const DEFAULT_NAME = '桃林鐵路鋪面改善統包工程（成功路至健行路）';
-const DEFAULT_AMOUNT = '4600';
+// 預設值由 quality-plan-workflow.py 動態寫入 src/config.json
+const DEFAULT_NAME = appConfig.projectName;
+const DEFAULT_AMOUNT = appConfig.amountWan;
 
 export default function App() {
   const [name, setName] = useState(DEFAULT_NAME);
