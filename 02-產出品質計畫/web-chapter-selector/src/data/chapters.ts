@@ -19,7 +19,7 @@ export const CHAPTERS: Chapter[] = [
   { id: 'ch6',  chineseNumeral: '陸',  title: '設備功能運轉檢測程序及標準' },
   { id: 'ch7',  chineseNumeral: '柒',  title: '自主檢查表' },
   { id: 'ch8',  chineseNumeral: '捌',  title: '不合格品之管制' },
-  { id: 'ch9',  chineseNumeral: '玖',  title: '矫正與預防措施' },
+  { id: 'ch9',  chineseNumeral: '玖',  title: '糾正與預防措施' },
   { id: 'ch10', chineseNumeral: '拾',  title: '內部品質稽核' },
   { id: 'ch11', chineseNumeral: '拾壹', title: '文件紀錄管理系統' },
 ];
@@ -44,7 +44,7 @@ const STATUS_TABLE: [string, ChapterStatus, ChapterStatus, ChapterStatus][] = [
   ['ch6',  'optional', 'optional',  'optional'],   // 陸：設備功能運轉檢測程序及標準（永遠選配）
   ['ch7',  'required', 'required',  'required'],   // 柒：自主檢查表
   ['ch8',  'required', 'optional',  'optional'],   // 捌：不合格品之管制
-  ['ch9',  'required', 'optional',  'optional'],   // 玖：矫正與預防措施
+  ['ch9',  'required', 'optional',  'optional'],   // 玖：糾正與預防措施
   ['ch10', 'required', 'optional',  'optional'],   // 拾：內部品質稽核
   ['ch11', 'required', 'required',  'optional'],   // 拾壹：文件紀錄管理系統
 ];
