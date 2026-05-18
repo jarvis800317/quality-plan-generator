@@ -67,7 +67,7 @@ CHAPTER_FLAGS = {
     'method':     False,  # 參　施工要領（❌未達5,000萬不強制）
     'standard':   True,   # 肆　品質管理標準
     'inspection': True,   # 伍　材料與設備及施工檢驗程序
-    'equipment':  False,  # 陸　設備功能運轉測試（❌本工程無機電設備）
+    'equipment':  False,  # 陸　設備功能運轉檢測程序及標準（❌本工程無機電設備）
     'selfcheck':  True,   # 柒　自主檢查表
     'nc':         False,  # 捌　不合格品之管制（❌未達5,000萬不強制）
     'ca':         False,  # 玖　矫正與預防措施（❌未達5,000萬不強制）

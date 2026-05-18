@@ -57,7 +57,7 @@
     <label for="amount">契約金額（元）</label>
     <input type="number" id="amount" placeholder="例如：107947000" value="107947000">
     <div id="levelBadge" class="level-badge" style="background:#dbeafe; color:#1e40af;">5,000 萬以上 — 11 章制</div>
-    <div id="levelInfo" class="level-info">法定必選 10 章（設備功能運轉測試為選配）</div>
+    <div id="levelInfo" class="level-info">法定必選 10 章（設備功能運轉檢測程序及標準為選配）</div>
   </div>
 
   <div class="card">
@@ -74,11 +74,11 @@
 <script>
 const CHAPTERS = [
   { key: "scope",      zhNum: "壹",   title: "計畫範圍",              note: "" },
-  { key: "mgmt",       zhNum: "貳",   title: "管理責任及權責分工",    note: "" },
+  { key: "mgmt",       zhNum: "貳",   title: "管理權責及分工",    note: "" },
   { key: "method",     zhNum: "參",   title: "施工要領",              note: "" },
   { key: "standard",   zhNum: "肆",   title: "品質管理標準",           note: "" },
-  { key: "inspection", zhNum: "伍",   title: "材料及施工檢驗程序",    note: "" },
-  { key: "equipment",  zhNum: "陸",   title: "設備功能運轉測試",      note: "有機電設備時建議保留" },
+  { key: "inspection", zhNum: "伍",   title: "材料與設備及施工檢驗程序",    note: "" },
+  { key: "equipment",  zhNum: "陸",   title: "設備功能運轉檢測程序及標準",      note: "有機電設備時建議保留" },
   { key: "selfcheck",  zhNum: "柒",   title: "自主檢查表",            note: "" },
   { key: "nc",         zhNum: "捌",   title: "不合格品之管制",        note: "" },
   { key: "ca",         zhNum: "玖",   title: "矫正與預防措施",        note: "" },
@@ -94,7 +94,7 @@ function getMandatoryKeys(amount) {
 }
 
 function getLevelInfo(amount) {
-  if (amount >= 50000000) return { label: "5,000 萬以上 — 11 章制",     color: "#dbeafe", text: "#1e40af", info: "法定必選 10 章（設備功能運轉測試為選配）", mandatoryCount: 10 };
+  if (amount >= 50000000) return { label: "5,000 萬以上 — 11 章制",     color: "#dbeafe", text: "#1e40af", info: "法定必選 10 章（設備功能運轉檢測程序及標準為選配）", mandatoryCount: 10 };
   if (amount >= 10000000) return { label: "1,000 萬～未達 5,000 萬 — 6 章制", color: "#dcfce7", text: "#166534", info: "法定必選 6 章", mandatoryCount: 6 };
   if (amount >= 1500000)  return { label: "150 萬～未達 1,000 萬 — 4 章制", color: "#fef3c7", text: "#92400e", info: "法定必選 4 章（不得省略）", mandatoryCount: 4 };
   return { label: "未達 150 萬 — 無強制要求", color: "#f3f4f6", text: "#6b7280", info: "建議至少 4 章", mandatoryCount: 0 };

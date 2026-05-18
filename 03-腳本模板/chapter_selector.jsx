@@ -7,11 +7,11 @@ import { useState, useCallback, useRef } from "react";
 
 const ALL_CHAPTERS = [
   { key: "scope",      zhNum: "壹",   title: "計畫範圍",            note: "" },
-  { key: "mgmt",       zhNum: "貳",   title: "管理責任及權責分工",   note: "" },
+  { key: "mgmt",       zhNum: "貳",   title: "管理權責及分工",    note: "" },
   { key: "method",     zhNum: "參",   title: "施工要領",            note: "" },
   { key: "standard",   zhNum: "肆",   title: "品質管理標準",         note: "" },
-  { key: "inspection", zhNum: "伍",   title: "材料及施工檢驗程序",   note: "" },
-  { key: "equipment",  zhNum: "陸",   title: "設備功能運轉測試",     note: "有機電設備時建議保留" },
+  { key: "inspection", zhNum: "伍",   title: "材料與設備及施工檢驗程序",   note: "" },
+  { key: "equipment",  zhNum: "陸",   title: "設備功能運轉檢測程序及標準",     note: "有機電設備時建議保留" },
   { key: "selfcheck",  zhNum: "柒",   title: "自主檢查表",           note: "" },
   { key: "nc",         zhNum: "捌",   title: "不合格品之管制",       note: "" },
   { key: "ca",         zhNum: "玖",   title: "矯正與預防措施",       note: "" },
