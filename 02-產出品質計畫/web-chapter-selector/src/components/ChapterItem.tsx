@@ -48,7 +48,7 @@ export function ChapterItem({ chapter, status, isChecked, onToggle }: ChapterIte
             <Check
               size={14}
               strokeWidth={3}
-              color="white"
+              color="black"
               style={{ display: 'block' }}
             />
           )}
