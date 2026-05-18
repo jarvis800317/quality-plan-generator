@@ -44,7 +44,14 @@ export function ChapterItem({ chapter, status, isChecked, onToggle }: ChapterIte
               : '選配章（可自行勾選）'
           }
         >
-          {isChecked && <Check size={11} strokeWidth={3} />}
+          {isChecked && (
+            <Check
+              size={14}
+              strokeWidth={3}
+              color="white"
+              style={{ display: 'block' }}
+            />
+          )}
         </button>
         <span
           className={clsx(
