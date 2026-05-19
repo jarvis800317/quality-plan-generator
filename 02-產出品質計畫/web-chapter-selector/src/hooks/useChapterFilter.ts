@@ -14,7 +14,7 @@ export interface ProjectConfig {
  * 根據勾選狀態取得要輸出的章節列表（依中文大寫順序）
  */
 export function getSelectedChapters(
-  amount: number,
+  _amount: number,
   checkedIds: Set<string>
 ): Chapter[] {
   return CHAPTERS.filter((ch) => checkedIds.has(ch.id));

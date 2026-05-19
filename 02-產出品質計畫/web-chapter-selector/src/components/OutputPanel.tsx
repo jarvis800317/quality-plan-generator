@@ -52,6 +52,22 @@ export function OutputPanel({ chapters, projectName, amount }: OutputPanelProps)
           <Download size={14} />
           下載章節 (.txt)
         </button>
+        <button
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('quality-plan-trigger', {
+              detail: {
+                projectName,
+                amount,
+                selectedIds: chapters.map((ch) => ch.id),
+                timestamp: Date.now(),
+              },
+            }));
+          }}
+          disabled={chapters.length === 0}
+          className="flex items-center gap-1.5 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+        >
+          ✓ 確認並產生品質計畫
+        </button>
         <span className="flex-1" />
         <span className="flex items-center text-xs text-gray-400 self-center">
           共 {chapters.length} 章
