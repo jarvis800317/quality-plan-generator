@@ -639,9 +639,9 @@ def build_doc():
         {'level': 2, 'title': '  二、工作職掌',               'page': 9},
         {'level': 2, 'title': '  三、人員輪值及請休假事項',   'page': 11},
         {'level': 2, 'title': '  四、管理審查',               'page': 12},
-        {'level': 1, 'title': '參、施工要領',                 'page': 12},
-        {'level': 2, 'title': '  一、分項計畫管制表',         'page': 12},
-        {'level': 2, 'title': '  二、各工項施工要領',         'page': 13},
+        {'level': 1, 'title': '參、施工用領',                 'page': 12},
+        {'level': 2, 'title': '  一、施工用料訂定',         'page': 12},
+        {'level': 2, 'title': '  二、各工項施工用領',         'page': 13},
         {'level': 1, 'title': '肆、品質管理標準',             'page': 30},
         {'level': 2, 'title': '  一、各工項品質管理標準表',   'page': 30},
         {'level': 1, 'title': '伍、材料與設備及施工檢驗程序',       'page': 55},
@@ -845,12 +845,12 @@ def build_doc():
     body(doc, "　　依每季審查品質管理系統以確保其持續適切、正確及有效性。審查內容包括前次審查紀錄執行情形、內部品質稽核、矯正措施、預防措施、外部驗證及工程評鑑結果。")
 
     # ════════════════════════════════
-    # 參、施工要領
+    # 參、施工用領
     # ════════════════════════════════
-    heading(doc, "參、施工要領", level=1)
+    heading(doc, "參、施工用領", level=1)
 
-    heading(doc, "一、分項計畫管制表", level=2)
-    add_table_caption(doc, 3, 1, "各分項計畫管制表")
+    heading(doc, "一、施工用領", level=2)
+    add_table_caption(doc, 3, 1, "各分項工程施工用料一覽表")
     make_table(doc,
                headers=["項次", "提送項目", "預定送審日期", "備註"],
                rows=[
@@ -869,9 +869,9 @@ def build_doc():
                ],
                col_widths=[1.5, 8.5, 3.0, 3.5])
 
-    heading(doc, "二、各工項施工要領", level=2)
+    heading(doc, "二、各工項施工用領", level=2)
 
-    # 各工項施工要領表
+    # 各工項施工用領表
     work_items_methods = [
         ("整地拆除工程", [
             ("清除及掘除", "植被、廢棄物等", "推土機、怪手", "依環保規定處理廢棄物，避免二次污染"),
@@ -932,7 +932,7 @@ def build_doc():
     ]
 
     for idx, (work_name, steps) in enumerate(work_items_methods, 1):
-        add_table_caption(doc, 3, idx + 1, f"{work_name}施工要領")
+        add_table_caption(doc, 3, idx + 1, f"{work_name}施工用領")
         make_table(doc,
                    headers=["施工步驟", "使用材料", "施工機具", "注意事項"],
                    rows=steps,
@@ -1211,7 +1211,7 @@ def build_doc():
     body(doc, "\n二、預防措施")
     for item in [
         "（一）定期辦理品質管理審查，分析品質問題趨勢，擬訂預防措施。",
-        "（二）施工前辦理施工要領說明，確保施工人員了解品質要求。",
+        "（二）施工前辦理施工用領說明，確保施工人員了解品質要求。",
         "（三）材料進場前確認規格，避免不合格材料使用於工程中。",
         "（四）定期辦理品質教育訓練，提升施工人員品質意識。",
     ]:
