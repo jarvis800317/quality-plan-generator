@@ -641,18 +641,18 @@ def build_doc():
         col_widths=[4.0, 12.5])
 
 # ════════════════════════════════════
-    # 第三章 施工程施工要要領
+    # 第三章 工程施工要領
     # ════════════════════════════════════
-    heading(doc, "第三章　施工程施工要要領", 1)
-    heading(doc, "一、工要要領領訂定", 2)
-    add_table_caption(doc, 3, 1, "各分項工程施工程施工要要領一覽表")
+    heading(doc, "第三章　工程施工要領", 1)
+    heading(doc, "一、要領訂定", 2)
+    add_table_caption(doc, 3, 1, "各分項工程施工要領一覽表")
     item_list_rows = [(str(i+1), name, f"表三-{i+2}") for i, (name, _) in enumerate(WORK_ITEMS)]
     make_table(doc,
-        headers=["項次","施工程施工要領名稱","備註"],
+        headers=["項次","工程施工要領名稱","備註"],
         rows=item_list_rows,
         col_widths=[1.5, 12.0, 3.0])
 
-   工要領項工程施工要領表
+    # 施工要領項工程施工要領表
     method_headers = ["施工步驟","使用材料","施工機具","注意事項"]
     method_col = [3.5, 3.5, 3.5, 6.0]
 

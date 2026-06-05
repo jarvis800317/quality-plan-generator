@@ -639,9 +639,9 @@ def build_doc():
         {'level': 2, 'title': '  二、工作職掌',               'page': 9},
         {'level': 2, 'title': '  三、人員輪值及請休假事項',   'page': 11},
         {'level': 2, 'title': '  四、管理審查',               'page': 12},
-        {'level': 1, 'title': '參、施工程施工要用阘',                 'page': 12},
-        {'level': 2, 'title': '  一、施工程施工要用阘訂定',         'page': 12},
-        {'level': 2, 'title': '  二、各工項施工程施工要用阘',         'page': 13},
+        {'level': 1, 'title': '參、工程施工要領',                 'page': 12},
+        {'level': 2, 'title': '  一、要領訂定',         'page': 12},
+        {'level': 2, 'title': '  二、各工項工程施工要領',         'page': 13},
         {'level': 1, 'title': '肆、品質管理標準',             'page': 30},
         {'level': 2, 'title': '  一、各工項品質管理標準表',   'page': 30},
         {'level': 1, 'title': '伍、材料與設備及施工檢驗程序',       'page': 55},
@@ -691,8 +691,6 @@ def build_doc():
         "（十）其他相關法令規定",
     ]:
         body(doc, item, indent=0.5)
-
-    heading(doc, "三、工程概要", level=2)
     overview_items = [
         ("工程名稱", ENG_NAME),
         ("主辦機關", ENG_OWNER),
@@ -845,16 +843,15 @@ def build_doc():
     body(doc, "　　依每季審查品質管理系統以確保其持續適切、正確及有效性。審查內容包括前次審查紀錄執行情形、內部品質稽核、矯正措施、預防措施、外部驗證及工程評鑑結果。")
 
 # ════════════════════════════════
-    # 參、施工程施工要用阘
-    # ════════════════════════════════
-    heading(doc, "參、施工程施工要用阘", level=1)
-    heading(doc, "一、工要用阘領訂定", level=2)
-    add_table_caption(doc, 3, 1, "各分項工程施工程施工要用阘一覽表")
+# 參、工程施工要領
+    heading(doc, "參、工程施工要領", level=1)
+    heading(doc, "一、要領訂定", level=2)
+    add_table_caption(doc, 3, 1, "各分項工程施工要領一覽表")
     # ⚠️ TODO：表內容應從監造計畫「施工抽查標準一覽表」動態讀取
     # 暫以 work_items_methods 的工項名稱填入，修復時替換為動態來源
     item_list_rows = [(str(i+1), name, "") for i, name in enumerate([name for name, _ in work_items_methods])]
     make_table(doc,
-               headers=["項次", "施工程施工要用阘名稱", "備註"],
+               headers=["項次", "工程施工要領名稱", "備註"],
                rows=item_list_rows,
                col_widths=[1.5, 12.0, 3.0])
 
@@ -949,7 +946,7 @@ XLPE電纜", "無", "管線埋設深度符合電工法規，轉角處留餘裕")
     ]
 
     for idx, (work_name, steps) in enumerate(work_items_methods, 1):
-        add_table_caption(doc, 3, idx + 1, f工要用阘me}工程施工要領")
+add_table_caption(doc, 3, idx + 1, f"{work_name}工程施工要領")
         make_table(doc,
                    headers=["施工步驟", "使用材料", "施工機具", "注意事項"],
                    rows=steps,
@@ -1025,8 +1022,6 @@ XLPE電纜", "無", "管線埋設深度符合電工法規，轉角處留餘裕")
     body(doc, "本工程材料及設備之選定及送審，依下列流程辦理：")
     add_flowchart_placeholder(doc, 'fig_5_1', preset_material_approval())
     add_figure_caption(doc, 5, 1, "材料/設備選定送審流程圖")
-
-    heading(doc, "二、施工檢驗流程", level=2)
     body(doc, "本工程施工檢驗依下列流程辦理：")
     add_flowchart_placeholder(doc, 'fig_5_2', preset_work_inspection())
     add_figure_caption(doc, 5, 2, "施工檢驗流程圖")
@@ -1228,7 +1223,7 @@ XLPE電纜", "無", "管線埋設深度符合電工法規，轉角處留餘裕")
     body(doc, "\n二、預防措施")
     for item in [
         "（一）定期辦理品質管理審查，分析品質問題趨勢，擬訂預防措施。",
-        "（二）施工前辦理施工程施工要用阘說明，確保施工人員了解品質要求。",
+        "（二）施工前辦理工程施工要領說明，確保施工人員了解品質要求。",
         "（三）材料進場前確認規格，避免不合格材料使用於工程中。",
         "（四）定期辦理品質教育訓練，提升施工人員品質意識。",
     ]:
